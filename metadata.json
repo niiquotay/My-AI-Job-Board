@@ -1,0 +1,9 @@
+{
+  "name": "Copy of Job Board",
+  "description": "A next-generation social hiring platform featuring AI Match Scores, Video Intros, and an Employer AI Copilot with a premium glassmorphic UI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
