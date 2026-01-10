@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
-  Briefcase, ArrowRight, Shield, Zap, Sparkles, Globe, UserCheck, 
-  BarChart3, FileText, Search, Crown, MapPin, DollarSign, 
+import {
+  Briefcase, ArrowRight, Shield, Zap, Sparkles, Globe, UserCheck,
+  BarChart3, FileText, Search, Crown, MapPin, DollarSign,
   ChevronRight, Target, Video, EyeOff, BellRing, Wand2, Users, Cpu,
   UserPlus, Building, LogIn, FileStack, MessageSquare, ShieldCheck,
   Fingerprint, Layers, Receipt, Smartphone, Package, Award, Check,
@@ -17,26 +17,45 @@ interface HomeProps {
   onSignInClick: () => void;
   onViewCompany: (name: string) => void;
   onNavigateToModule: (view: ViewType) => void;
+  onSelectJob: (job: Job) => void;
   premiumJobs: Job[];
   userCountry?: string;
 }
 
-const Home: React.FC<HomeProps> = ({ 
-  onSeekerSignUp, 
-  onEmployerSignUp, 
-  onSignInClick, 
-  onViewCompany, 
+const Home: React.FC<HomeProps> = ({
+  onSeekerSignUp,
+  onEmployerSignUp,
+  onSignInClick,
+  onViewCompany,
   onNavigateToModule,
-  premiumJobs, 
-  userCountry 
+  onSelectJob,
+  premiumJobs,
+  userCountry
 }) => {
   const companies = [
-    "Nexus AI", "FinFlow", "Loom Studio", "Quantum Dynamics", "Stripe", "Airbnb", 
+    "Nexus AI", "FinFlow", "Loom Studio", "Quantum Dynamics", "Stripe", "Airbnb",
     "Vercel", "Linear", "Raycast", "Arc Browser", "OpenAI", "Anthropic"
   ];
 
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-start p-6 custom-scrollbar text-white">
+      {/* Top Navigation for Guests */}
+      <div className="w-full max-w-5xl flex items-center justify-between py-4 mb-4 relative z-20">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-[#F0C927] rounded-lg flex items-center justify-center text-[#0a4179]">
+            <Sparkles size={18} fill="currentColor" />
+          </div>
+          <span className="text-sm font-black uppercase tracking-widest text-white">AI-JobConnect</span>
+        </div>
+        <button
+          onClick={onSignInClick}
+          className="bg-white/10 hover:bg-white/20 border border-white/10 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 group"
+        >
+          <LogIn size={14} className="group-hover:text-[#F0C927] transition-colors" />
+          Sign In
+        </button>
+      </div>
+
       <div className="max-w-5xl w-full space-y-8 relative z-10 py-8 md:py-12">
         {/* Hero Section */}
         <div className="text-center space-y-3">
@@ -53,7 +72,7 @@ const Home: React.FC<HomeProps> = ({
           <div className="pt-2 flex flex-col items-center gap-6">
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Tooltip text="Create a professional profile, upload your CV, and start applying to AI-matched roles instantly.">
-                <button 
+                <button
                   onClick={onSeekerSignUp}
                   className="group flex items-center gap-3 bg-[#F0C927] hover:bg-[#F0C927]/90 text-[#0a4179] px-8 py-4 rounded-2xl transition-all duration-300 font-black text-sm shadow-xl shadow-[#F0C927]/20 active:scale-95 hover:-translate-y-1"
                 >
@@ -62,9 +81,9 @@ const Home: React.FC<HomeProps> = ({
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </Tooltip>
-              
+
               <Tooltip text="Access our hiring studio to post job listings, manage applicant pipelines, and use the Employer AI Copilot.">
-                <button 
+                <button
                   onClick={onEmployerSignUp}
                   className="group relative flex items-center gap-3 bg-[#1F8E85] hover:bg-[#1F8E85]/90 text-white px-8 py-4 rounded-2xl border border-white/10 transition-all duration-300 font-black text-sm active:scale-95 hover:-translate-y-1"
                 >
@@ -74,13 +93,13 @@ const Home: React.FC<HomeProps> = ({
                 </button>
               </Tooltip>
             </div>
-            
-            <button 
-              onClick={onSignInClick}
-              className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/30 hover:text-white transition-all group"
+
+            <button
+              onClick={() => onNavigateToModule('seeker')}
+              className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/40 hover:text-white transition-all group"
             >
-              <LogIn size={14} className="group-hover:translate-x-1 transition-transform text-[#F0C927]" />
-              Already have an account? <span className="underline decoration-[#F0C927]/30 underline-offset-8">Sign In</span>
+              <Search size={14} className="group-hover:scale-110 transition-transform text-[#41d599]" />
+              <span className="underline decoration-[#41d599]/30 underline-offset-8">Browse Jobs as Guest</span>
             </button>
           </div>
         </div>
@@ -98,7 +117,7 @@ const Home: React.FC<HomeProps> = ({
                   <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Premium Market Opportunities</p>
                 </div>
               </div>
-              <button onClick={onSeekerSignUp} className="text-xs font-black uppercase tracking-widest text-[#F0C927] hover:text-white transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+              <button onClick={() => onNavigateToModule('seeker')} className="text-xs font-black uppercase tracking-widest text-[#F0C927] hover:text-white transition-colors flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
                 View All Jobs <ArrowRight size={14} />
               </button>
             </div>
@@ -107,12 +126,13 @@ const Home: React.FC<HomeProps> = ({
               <div className="max-h-[400px] overflow-y-auto custom-scrollbar divide-y divide-white/5">
                 {premiumJobs.map((job) => (
                   <Tooltip key={job.id} text={`Apply to ${job.title} at ${job.company}. Position based in ${job.city}.`} className="w-full">
-                    <div 
+                    <div
+                      onClick={() => onSelectJob(job)}
                       className="group hover:bg-[#F0C927]/5 transition-all duration-300 p-4 md:px-8 md:py-4 flex items-center justify-between cursor-pointer gap-4 hover:shadow-2xl border-l-[4px] border-l-transparent hover:border-l-[#F0C927] relative"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <Tooltip text={`View ${job.company} Company Profile`}>
-                          <div 
+                          <div
                             onClick={(e) => { e.stopPropagation(); onViewCompany(job.company); }}
                             className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center font-black border border-[#F0C927]/20 text-xs text-[#F0C927] group-hover:bg-[#F0C927] group-hover:text-[#0a4179] transition-all overflow-hidden cursor-pointer shadow-inner"
                           >
@@ -123,7 +143,7 @@ const Home: React.FC<HomeProps> = ({
                             )}
                           </div>
                         </Tooltip>
-                        <div className="min-w-0 flex-1" onClick={onSeekerSignUp}>
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-black text-sm text-[#F0C927] group-hover:text-white transition-colors truncate">{job.title}</h4>
                             <span className="shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#F0C927]/10 text-[#F0C927] border border-[#F0C927]/20 text-[6px] font-black uppercase tracking-[0.2em]">
@@ -131,7 +151,7 @@ const Home: React.FC<HomeProps> = ({
                             </span>
                           </div>
                           <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-0.5">
-                            <p 
+                            <p
                               onClick={(e) => { e.stopPropagation(); onViewCompany(job.company); }}
                               className="text-xs text-white/50 font-bold truncate hover:text-[#F0C927] hover:underline"
                             >
@@ -143,8 +163,8 @@ const Home: React.FC<HomeProps> = ({
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-6 shrink-0" onClick={onSeekerSignUp}>
+
+                      <div className="flex items-center gap-6 shrink-0">
                         <div className="hidden md:flex flex-col items-end">
                           <p className="text-[8px] text-white/30 font-black uppercase tracking-widest">Comp.</p>
                           <div className="flex items-center gap-1 text-sm font-black text-[#41d599] whitespace-nowrap">
@@ -235,63 +255,63 @@ const Home: React.FC<HomeProps> = ({
 
         {/* Unified Ecosystem Grid - Refined Layout & Reduced Height */}
         <section className="space-y-4 py-6 border-t border-white/5 relative">
-           <div className="text-center space-y-1">
-              <h2 className="text-xl font-black tracking-tight uppercase">Unified <span className="text-[#F0C927]">Business Ecosystem</span></h2>
-              <p className="text-white/30 text-[8px] font-black uppercase tracking-[0.3em]">The complete organizational management suite</p>
-           </div>
-           
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <Tooltip text="Current Module: Access the world-class recruitment marketplace.">
-                <div className="glass rounded-2xl p-4 border-[#F0C927]/30 bg-[#F0C927]/5 shadow-lg transition-all cursor-default flex flex-col items-center text-center">
-                  <div className="w-9 h-9 rounded-xl bg-[#F0C927] text-[#0a4179] flex items-center justify-center mb-3 shadow-md">
-                    <Briefcase size={18} />
-                  </div>
-                  <h3 className="text-xs font-black uppercase mb-1">Job Board</h3>
-                  <div className="flex items-center gap-1.5 text-[#F0C927] text-[7px] font-black uppercase tracking-widest">
-                    <Check size={8} /> Active Module
-                  </div>
-                </div>
-              </Tooltip>
+          <div className="text-center space-y-1">
+            <h2 className="text-xl font-black tracking-tight uppercase">Unified <span className="text-[#F0C927]">Business Ecosystem</span></h2>
+            <p className="text-white/30 text-[8px] font-black uppercase tracking-[0.3em]">The complete organizational management suite</p>
+          </div>
 
-              <div 
-                onClick={() => onNavigateToModule('hrm-landing')}
-                className="glass group rounded-2xl p-4 border-white/5 hover:border-[#41d599]/40 hover:bg-[#41d599]/5 transition-all cursor-pointer flex flex-col items-center text-center"
-              >
-                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-[#41d599] group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
-                  <Users size={18} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Tooltip text="Current Module: Access the world-class recruitment marketplace.">
+              <div className="glass rounded-2xl p-4 border-[#F0C927]/30 bg-[#F0C927]/5 shadow-lg transition-all cursor-default flex flex-col items-center text-center">
+                <div className="w-9 h-9 rounded-xl bg-[#F0C927] text-[#0a4179] flex items-center justify-center mb-3 shadow-md">
+                  <Briefcase size={18} />
                 </div>
-                <h3 className="text-xs font-black uppercase mb-1 group-hover:text-[#41d599]">HRM Solution</h3>
-                <div className="flex items-center gap-1 text-white/20 group-hover:text-[#41d599] text-[7px] font-black uppercase tracking-widest">
-                  Deploying Q3 <ChevronRight size={8} />
+                <h3 className="text-xs font-black uppercase mb-1">Job Board</h3>
+                <div className="flex items-center gap-1.5 text-[#F0C927] text-[7px] font-black uppercase tracking-widest">
+                  <Check size={8} /> Active Module
                 </div>
               </div>
+            </Tooltip>
 
-              <div 
-                onClick={() => onNavigateToModule('payroll-landing')}
-                className="glass group rounded-2xl p-4 border-white/5 hover:border-blue-400/40 hover:bg-blue-400/5 transition-all cursor-pointer flex flex-col items-center text-center"
-              >
-                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-blue-400 group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
-                  <Landmark size={18} />
-                </div>
-                <h3 className="text-xs font-black uppercase mb-1 group-hover:text-blue-400">Payroll Studio</h3>
-                <div className="flex items-center gap-1 text-white/20 group-hover:text-blue-400 text-[7px] font-black uppercase tracking-widest">
-                  Deploying Q4 <ChevronRight size={8} />
-                </div>
+            <div
+              onClick={() => onNavigateToModule('hrm-landing')}
+              className="glass group rounded-2xl p-4 border-white/5 hover:border-[#41d599]/40 hover:bg-[#41d599]/5 transition-all cursor-pointer flex flex-col items-center text-center"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-[#41d599] group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
+                <Users size={18} />
               </div>
+              <h3 className="text-xs font-black uppercase mb-1 group-hover:text-[#41d599]">HRM Solution</h3>
+              <div className="flex items-center gap-1 text-white/20 group-hover:text-[#41d599] text-[7px] font-black uppercase tracking-widest">
+                Deploying Q3 <ChevronRight size={8} />
+              </div>
+            </div>
 
-              <div 
-                onClick={() => onNavigateToModule('vendor-landing')}
-                className="glass group rounded-2xl p-4 border-white/5 hover:border-purple-400/40 hover:bg-purple-400/5 transition-all cursor-pointer flex flex-col items-center text-center"
-              >
-                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-purple-400 group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
-                  <ShoppingCart size={18} />
-                </div>
-                <h3 className="text-xs font-black uppercase mb-1 group-hover:text-purple-400">Vendors Hub</h3>
-                <div className="flex items-center gap-1 text-white/20 group-hover:text-purple-400 text-[7px] font-black uppercase tracking-widest">
-                  Beta Testing <ChevronRight size={8} />
-                </div>
+            <div
+              onClick={() => onNavigateToModule('payroll-landing')}
+              className="glass group rounded-2xl p-4 border-white/5 hover:border-blue-400/40 hover:bg-blue-400/5 transition-all cursor-pointer flex flex-col items-center text-center"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-blue-400 group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
+                <Landmark size={18} />
               </div>
-           </div>
+              <h3 className="text-xs font-black uppercase mb-1 group-hover:text-blue-400">Payroll Studio</h3>
+              <div className="flex items-center gap-1 text-white/20 group-hover:text-blue-400 text-[7px] font-black uppercase tracking-widest">
+                Deploying Q4 <ChevronRight size={8} />
+              </div>
+            </div>
+
+            <div
+              onClick={() => onNavigateToModule('vendor-landing')}
+              className="glass group rounded-2xl p-4 border-white/5 hover:border-purple-400/40 hover:bg-purple-400/5 transition-all cursor-pointer flex flex-col items-center text-center"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 group-hover:bg-purple-400 group-hover:text-[#0a4179] flex items-center justify-center mb-3 transition-all">
+                <ShoppingCart size={18} />
+              </div>
+              <h3 className="text-xs font-black uppercase mb-1 group-hover:text-purple-400">Vendors Hub</h3>
+              <div className="flex items-center gap-1 text-white/20 group-hover:text-purple-400 text-[7px] font-black uppercase tracking-widest">
+                Beta Testing <ChevronRight size={8} />
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Global Footer Logos */}
@@ -303,7 +323,7 @@ const Home: React.FC<HomeProps> = ({
             <div className="animate-marquee whitespace-nowrap flex items-center gap-16 md:gap-32">
               {[...companies, ...companies].map((name, i) => (
                 <Tooltip key={i} text={`Hiring partner: ${name}.`}>
-                  <div 
+                  <div
                     onClick={() => onViewCompany(name)}
                     className="flex flex-col items-center gap-2 opacity-20 hover:opacity-100 transition-all cursor-pointer group"
                   >

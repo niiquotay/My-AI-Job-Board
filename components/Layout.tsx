@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
+import {
   User, Briefcase, LayoutDashboard, Bell, Search, Settings as SettingsIcon,
-  LogOut, UserCircle, Megaphone, Zap, ClipboardList, 
+  LogOut, UserCircle, Megaphone, Zap, ClipboardList,
   Bookmark, Send, BarChart3, Users, Receipt, Video, PlusCircle, FileStack, ShieldCheck,
   MessageSquareCode, MessageSquareShare, Menu, X, BarChart, FileCheck, Lock, Building2, Building, Package
 } from 'lucide-react';
@@ -28,10 +28,10 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
 
   // Extended check to hide sidebar on landing pages for other models
   const isPublicView = [
-    'home', 
-    'signin', 
-    'hrm-landing', 
-    'payroll-landing', 
+    'home',
+    'signin',
+    'hrm-landing',
+    'payroll-landing',
     'vendor-landing'
   ].includes(view);
 
@@ -54,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
             AI JOB CONNECT
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-xl bg-white/5 text-[#F0C927] border border-white/10 active:scale-95 transition-all"
         >
@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
 
       {/* Backdrop for Mobile */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-in fade-in duration-300"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -86,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
               {isAdmin ? 'Central Intelligence' : (isEmployer ? 'Enterprise Hub' : 'Talent Portal')}
             </div>
           </div>
-          <button 
+          <button
             className="md:hidden p-1 text-white/20 hover:text-white"
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -226,8 +226,32 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-10">
-        {children}
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-0">
+        <div className="sticky top-0 z-40 p-4 md:px-10 md:py-6 bg-[#0a4179]/90 backdrop-blur-md flex items-center justify-between border-b border-white/5 mb-4">
+          {/* Top Bar for Authenticated Users */}
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-black uppercase tracking-tight text-white">{
+              view === 'seeker' ? 'Discover Jobs' :
+                view === 'employer' ? 'Hiring HQ' :
+                  view.replace('-', ' ')
+            }</h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleNavClick('home')}
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400 hover:text-[#0a4179] transition-all font-black uppercase text-[10px] tracking-widest"
+            >
+              <LogOut size={14} /> Shutdown
+            </button>
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+              {user.profileImages?.[0] ? <img src={user.profileImages[0]} className="w-full h-full rounded-full object-cover" /> : <User size={20} className="text-white/40" />}
+            </div>
+          </div>
+        </div>
+        <div className="px-4 md:px-10 pb-10">
+          {children}
+        </div>
       </main>
     </div>
   );

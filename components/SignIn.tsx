@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn, ArrowLeft, Loader2, ShieldCheck, AlertCircle, Linkedin, ShieldAlert, Users, ChevronRight, Sparkles, Info, Key } from 'lucide-react';
+import { ArrowRight, Mail, Lock, LogIn, ArrowLeft, Loader2, ShieldCheck, AlertCircle, Linkedin, ShieldAlert, Users, ChevronRight, Sparkles, Info, Key } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 import { MOCK_USER, MOCK_EMPLOYER, STAFF_ACCOUNTS } from '../constants';
 import { UserProfile, OperationalRole } from '../types';
 
@@ -16,71 +17,82 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
   const [showStaffPortal, setShowStaffPortal] = useState(false);
   const [showDemoInfo, setShowDemoInfo] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    // Simulated auth delay
-    setTimeout(() => {
+    try {
+      // 1. Try Supabase Auth first
+      const { data, error: sbError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (!sbError && data.user) {
+        // Successful Supabase Login
+        // The App component listener will handle the state update
+        return;
+      }
+
+      // 2. Fallback to Mock Logic if Supabase fails (or for demo accounts not in Supabase)
+      console.warn('Supabase login failed, checking mocks...', sbError?.message);
+
       const emailLower = email.toLowerCase();
-      
+
       // Admin Check
       if (emailLower === 'admin@jobconnect.ai' && password === 'admin123') {
         onSignIn(STAFF_ACCOUNTS.super_admin);
-        setIsLoading(false);
         return;
       }
 
       // Seeker Check (Kester)
       if (emailLower === MOCK_USER.email.toLowerCase() && password === 'user123') {
         onSignIn(MOCK_USER);
-        setIsLoading(false);
         return;
       }
 
       // Employer Check (James Miller)
       if (emailLower === MOCK_EMPLOYER.email.toLowerCase() && password === 'employer123') {
         onSignIn(MOCK_EMPLOYER);
-        setIsLoading(false);
         return;
       }
 
-      // Other Staff Accounts (Check email match for staff, password 'staff123')
+      // Other Staff Accounts
       const staffMatch = Object.values(STAFF_ACCOUNTS).find(s => s.email.toLowerCase() === emailLower);
       if (staffMatch && password === 'staff123') {
         onSignIn(staffMatch);
-        setIsLoading(false);
         return;
       }
 
-      // Fallback for new accounts
-      if (email.includes('@') && password.length >= 6) {
-        onSignIn({
-          ...MOCK_USER,
-          name: email.split('@')[0],
-          email: email,
-          profileCompleted: false,
-          isSubscribed: false,
-          subscriptionTier: 'free',
-          purchaseHistory: [],
-          profileImages: []
-        });
-      } else {
-        setError("Invalid credentials. Try admin@jobconnect.ai / admin123 or check demo info.");
-      }
+      // If Supabase failed AND Mocks failed, show error
+      if (sbError) throw sbError;
+      throw new Error("Invalid credentials");
+
+    } catch (err: any) {
+      setError(err.message || 'Error logging in');
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
-  const handleSocialLogin = (provider: 'Google' | 'LinkedIn') => {
+  const handleSocialLogin = async (provider: 'google' | 'linkedin') => {
     setIsLoading(true);
     setError(null);
-    setTimeout(() => {
-      // For demo, social login logs you in as the Mock User (Kester)
-      onSignIn(MOCK_USER);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
       setIsLoading(false);
-    }, 1500);
+      // Fallback for demo
+      setTimeout(() => {
+        onSignIn(MOCK_USER);
+        setIsLoading(false);
+      }, 1000);
+    }
   };
 
   const handleStaffLoginShortcut = (role: OperationalRole) => {
@@ -98,15 +110,15 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
 
       <div className="glass w-full max-w-md rounded-[40px] p-10 border-white/10 shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="flex items-center justify-between mb-10">
-          <button 
+          <button
             onClick={onBack}
             className="flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest">Home</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setShowDemoInfo(!showDemoInfo)}
             className={`p-2 rounded-xl border transition-all ${showDemoInfo ? 'bg-[#F0C927] text-[#0a4179] border-[#F0C927]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white'}`}
           >
@@ -116,27 +128,27 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
 
         {showDemoInfo && (
           <div className="mb-8 p-6 rounded-3xl bg-[#F0C927]/10 border border-[#F0C927]/30 space-y-4 animate-in slide-in-from-top-4 overflow-y-auto max-h-[300px] custom-scrollbar">
-             <h4 className="text-xs font-black uppercase tracking-widest text-[#F0C927] flex items-center gap-2">
-               <Key size={14} /> Demo Credentials
-             </h4>
-             <div className="space-y-4">
-               <div>
-                 <p className="text-[9px] font-black uppercase text-white/40">Super Admin (Full Access)</p>
-                 <p className="text-xs font-mono text-white/80">admin@jobconnect.ai / admin123</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-black uppercase text-white/40">Mock Employer (Hiring Hub)</p>
-                 <p className="text-xs font-mono text-white/80">hiring@quantify.ai / employer123</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-black uppercase text-white/40">Mock Seeker (Talent Portal)</p>
-                 <p className="text-xs font-mono text-white/80">niidjanie@gmail.com / user123</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-black uppercase text-white/40">Other Staff Accounts</p>
-                 <p className="text-xs font-mono text-white/80">Use any staff email / staff123</p>
-               </div>
-             </div>
+            <h4 className="text-xs font-black uppercase tracking-widest text-[#F0C927] flex items-center gap-2">
+              <Key size={14} /> Demo Credentials
+            </h4>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[9px] font-black uppercase text-white/40">Super Admin (Full Access)</p>
+                <p className="text-xs font-mono text-white/80">admin@jobconnect.ai / admin123</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase text-white/40">Mock Employer (Hiring Hub)</p>
+                <p className="text-xs font-mono text-white/80">hiring@quantify.ai / employer123</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase text-white/40">Mock Seeker (Talent Portal)</p>
+                <p className="text-xs font-mono text-white/80">niidjanie@gmail.com / user123</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase text-white/40">Other Staff Accounts</p>
+                <p className="text-xs font-mono text-white/80">Use any staff email / staff123</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -148,8 +160,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <button 
-                onClick={() => handleSocialLogin('Google')} 
+              <button
+                onClick={() => handleSocialLogin('google')}
                 disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-2xl transition-all active:scale-95 group disabled:opacity-50 shadow-lg"
               >
@@ -161,8 +173,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
                 </svg>
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white">Google</span>
               </button>
-              <button 
-                onClick={() => handleSocialLogin('LinkedIn')} 
+              <button
+                onClick={() => handleSocialLogin('linkedin')}
                 disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-2xl transition-all active:scale-95 group disabled:opacity-50 shadow-lg"
               >
@@ -187,12 +199,12 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSignIn} className="space-y-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-white/40 px-1">Professional Email</label>
                 <div className="relative">
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -209,8 +221,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
                   <button type="button" className="text-[9px] font-black uppercase text-[#41d599] hover:underline">Recovery</button>
                 </div>
                 <div className="relative">
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -221,8 +233,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
                 </div>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isLoading}
                 className="w-full bg-[#41d599] text-[#0a4179] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-[#41d599]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
@@ -232,16 +244,16 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
             </form>
 
             <div className="mt-8 pt-8 border-t border-white/5">
-              <button 
+              <button
                 onClick={() => setShowStaffPortal(true)}
                 className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group border border-transparent hover:border-[#F0C927]/30"
               >
                 <div className="flex items-center gap-3">
-                   <ShieldAlert size={20} className="text-[#F0C927]" />
-                   <div className="text-left">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-[#F0C927]">Staff Entrance</p>
-                      <p className="text-[9px] text-white/30 uppercase">Operations, CRM & Finance</p>
-                   </div>
+                  <ShieldAlert size={20} className="text-[#F0C927]" />
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#F0C927]">Staff Entrance</p>
+                    <p className="text-[9px] text-white/30 uppercase">Operations, CRM & Finance</p>
+                  </div>
                 </div>
                 <ChevronRight size={16} className="text-white/20 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -253,7 +265,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
               <ArrowLeft size={16} />
               <span className="text-[10px] font-black uppercase tracking-widest">Back to Regular Login</span>
             </button>
-            
+
             <div className="text-center mb-6">
               <h2 className="text-2xl font-black text-[#F0C927]">Staff Portal</h2>
               <p className="text-white/40 text-xs mt-2 uppercase font-black tracking-widest">Select Department (Shortcut)</p>
@@ -261,17 +273,17 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
 
             <div className="grid gap-2 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
               {(Object.keys(STAFF_ACCOUNTS) as OperationalRole[]).map((role) => (
-                <button 
+                <button
                   key={role}
                   onClick={() => handleStaffLoginShortcut(role)}
                   disabled={isLoading}
                   className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-[#F0C927]/30 transition-all group text-left shadow-md"
                 >
-                   <div>
-                      <p className="text-xs font-black uppercase tracking-widest group-hover:text-[#F0C927] transition-colors">{role.replace('_', ' ')}</p>
-                      <p className="text-[9px] text-white/30 uppercase font-bold">{STAFF_ACCOUNTS[role].name}</p>
-                   </div>
-                   <ShieldCheck size={16} className="text-white/10 group-hover:text-[#41d599]" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest group-hover:text-[#F0C927] transition-colors">{role.replace('_', ' ')}</p>
+                    <p className="text-[9px] text-white/30 uppercase font-bold">{STAFF_ACCOUNTS[role].name}</p>
+                  </div>
+                  <ShieldCheck size={16} className="text-white/10 group-hover:text-[#41d599]" />
                 </button>
               ))}
             </div>
