@@ -103,45 +103,56 @@ const App: React.FC = () => {
   const [applyingJob, setApplyingJob] = useState<Job | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isMatching, setIsMatching] = useState(false);
+  const [activeCompanyProfile, setActiveCompanyProfile] = useState<string | null>(null);
   const [autoOpenJobCreate, setAutoOpenJobCreate] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [authGateRole, setAuthGateRole] = useState<'seeker' | 'employer'>('seeker');
 
   // Supabase Auth Listener
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // In a real app, we would fetch the full profile from the 'profiles' table here
-        // For now, we'll map the basic auth user to our UserProfile type
-        setUser({
-          ...MOCK_USER, // Fallback to mock data for missing fields for now
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata.full_name || 'Supabase User',
-          isAuthenticated: true
-        } as UserProfile);
-      } else {
-        setUser(null); // No user logged in
-      }
-    });
+    // Dynamically import to ensure no load-time crashes if keys are bad
+    import('./lib/supabaseClient').then(({ supabase }) => {
+      // Check active session
+      supabase.auth.getSession().then(({ data: { session } }: any) => {
+        if (session) {
+          setUser({
+            ...INITIAL_GUEST,
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata.full_name || 'Supabase User',
+            role: session.user.user_metadata.role || 'seeker',
+            profileCompleted: true,
+            isSubscribed: false
+          } as UserProfile);
+        }
+      });
 
-    // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setUser({
-          ...MOCK_USER,
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata.full_name || 'Supabase User',
-          isAuthenticated: true
-        } as UserProfile);
-      } else {
-        setUser(null);
-        setView('home');
-      }
-    });
+      // Listen for changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+        if (session) {
+          setUser({
+            ...INITIAL_GUEST,
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata.full_name || 'Supabase User',
+            role: session.user.user_metadata.role || 'seeker',
+            profileCompleted: true,
+            isSubscribed: false
+          } as UserProfile);
+        } else {
+          // If signed out, go back to guest
+          setUser(INITIAL_GUEST);
+          setView('home');
+        }
+      });
 
-    return () => subscription.unsubscribe();
+      // Cleanup
+      // Note: In strict mode double-invoke, subscription might be tricky, so we guard
+      return () => {
+        subscription?.unsubscribe();
+      };
+    });
   }, []);
 
   const isAuthenticated = !!user?.email;
