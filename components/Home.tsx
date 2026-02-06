@@ -45,7 +45,7 @@ const Home: React.FC<HomeProps> = ({
           <div className="w-8 h-8 bg-[#F0C927] rounded-lg flex items-center justify-center text-[#0a4179]">
             <Sparkles size={18} fill="currentColor" />
           </div>
-          <span className="text-sm font-black uppercase tracking-widest text-white">AI-JobConnect</span>
+          <span className="text-sm font-black uppercase tracking-widest text-white">CaliberDesk</span>
         </div>
         <button
           onClick={onSignInClick}
@@ -67,7 +67,7 @@ const Home: React.FC<HomeProps> = ({
             <span className="gradient-text">JUST JOBS</span>
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto font-medium leading-relaxed">
-            AI-JobConnect is the definitive recruitment intelligence platform. Manage your talent acquisition, human capital, and professional trajectory in one unified ecosystem.
+            CaliberDesk is the definitive recruitment intelligence platform. Manage your talent acquisition, human capital, and professional trajectory in one unified ecosystem.
           </p>
           <div className="pt-2 flex flex-col items-center gap-6">
             <div className="flex flex-wrap items-center justify-center gap-4">

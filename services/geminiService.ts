@@ -1,8 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Job, UserProfile, Message, Application, AptitudeQuestion } from "../types";
 
-export const analyzeMatch = async (user: UserProfile, job: Job): Promise<{ 
-  score: number; 
+export const analyzeMatch = async (user: UserProfile, job: Job): Promise<{
+  score: number;
   reason: string;
   details: { technical: number; culture: number; experience: number }
 }> => {
@@ -94,7 +94,7 @@ export const generateAptitudeTest = async (job: Job, numQuestions: number): Prom
 
 export const editProfileImage = async (base64Image: string, prompt: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
   const data = base64Image.split(',')[1] || base64Image;
   const mimeType = base64Image.split(';')[0].split(':')[1] || 'image/png';
 
@@ -109,7 +109,7 @@ export const editProfileImage = async (base64Image: string, prompt: string): Pro
           },
         },
         {
-          text: `You are a professional corporate photographer and editor. Refine this profile picture to look more professional based on this request: "${prompt}". Ensure the resulting image is sharp, well-lit, and suitable for a high-level executive profile on LinkedIn or AI-JobConnect. Maintain the subject's identity but enhance the attire, background, or lighting as requested.`,
+          text: `You are a professional corporate photographer and editor. Refine this profile picture to look more professional based on this request: "${prompt}". Ensure the resulting image is sharp, well-lit, and suitable for a high-level executive profile on LinkedIn or CaliberDesk. Maintain the subject's identity but enhance the attire, background, or lighting as requested.`,
         },
       ],
     },
@@ -120,7 +120,7 @@ export const editProfileImage = async (base64Image: string, prompt: string): Pro
       return `data:image/png;base64,${part.inlineData.data}`;
     }
   }
-  
+
   throw new Error("Failed to generate edited image part.");
 };
 
@@ -155,7 +155,7 @@ export const getEmployerInsights = async (jobs: Job[], applications: Application
           marketPosition: { type: Type.STRING },
           candidateQuality: { type: Type.STRING },
           actionItems: { type: Type.ARRAY, items: { type: Type.STRING } },
-          rolePerformance: { 
+          rolePerformance: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
@@ -182,7 +182,7 @@ export const generateJobSection = async (
   existingContent?: string
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
   let prompt = "";
   if (section === 'definition') {
     prompt = `Generate a high-stakes executive summary for a "${jobTitle}" role at "${companyName}". 
@@ -205,10 +205,10 @@ export const generateJobSection = async (
 };
 
 export const generateProfessionalDraft = async (
-  category: string, 
-  platform: string, 
-  context: string, 
-  user: UserProfile, 
+  category: string,
+  platform: string,
+  context: string,
+  user: UserProfile,
   job?: Job
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -313,7 +313,7 @@ export const enhanceProfileSection = async (sectionName: string, content: string
 export const generateTailoredResume = async (user: UserProfile, job?: Job): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const jobContext = job ? `Tailor this resume specifically for the ${job.title} position at ${job.company}. Description: ${job.description}` : "Create a high-impact professional resume.";
-  
+
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: `Generate a full professional resume in Markdown format for the following user. 
@@ -326,7 +326,7 @@ export const generateTailoredResume = async (user: UserProfile, job?: Job): Prom
 
 export const parseResume = async (input: { text?: string, base64?: string, mimeType?: string }): Promise<Partial<UserProfile>> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
   const prompt = `EXHAUSTIVE EXTRACTION PROTOCOL: EXTRACT EVERY SINGLE DETAIL FROM THIS RESUME. ZERO DATA LOSS.
     
     CRITICAL INSTRUCTIONS FOR WORK HISTORY:
@@ -407,13 +407,13 @@ export const parseResume = async (input: { text?: string, base64?: string, mimeT
       thinkingConfig: { thinkingBudget: 4000 }
     }
   });
-  
+
   return JSON.parse(response.text || '{}');
 };
 
 export const parseJobDescription = async (input: { text?: string, base64?: string, mimeType?: string }): Promise<Partial<Job>> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+
   const prompt = `EXHAUSTIVE EXTRACTION PROTOCOL: EXTRACT EVERY SINGLE DETAIL FROM THIS JOB DESCRIPTION.
     
     Return a JSON object matching this schema:
@@ -445,7 +445,7 @@ export const parseJobDescription = async (input: { text?: string, base64?: strin
       responseMimeType: "application/json"
     }
   });
-  
+
   return JSON.parse(response.text || '{}');
 };
 
@@ -454,7 +454,7 @@ export const getCareerAdvice = async (history: Message[], user: UserProfile, cur
   const chat = ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: {
-      systemInstruction: `You are an elite Career Coach at AI-JobConnect. 
+      systemInstruction: `You are an elite Career Coach at CaliberDesk. 
       The user is ${user.name}, a ${user.role} living in ${user.city}, ${user.country}. 
       They have skills: ${user.skills.join(', ')}.
       Current context: They are looking at a ${currentJob?.title || 'general job list'}.

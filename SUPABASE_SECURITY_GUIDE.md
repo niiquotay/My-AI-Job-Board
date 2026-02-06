@@ -27,3 +27,6 @@ Since I do not have administrative access to your Supabase Dashboard account, yo
 ## 3. Rate Limiting (Bonus Security)
 1.  Go to **Authentication** > **Rate Limits**.
 2.  You can adjust how many emails/sign-ins can be attempted per hour to prevent brute-force attacks.
+
+## 4. Social Authentication Setup
+For detailed steps on setting up **Google** and **LinkedIn** login, please refer to the [SUPABASE_AUTH_SETUP.md](./SUPABASE_AUTH_SETUP.md) file I just created for you.

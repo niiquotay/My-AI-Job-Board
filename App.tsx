@@ -19,6 +19,7 @@ import CVPrep from './components/CVPrep';
 import Billing from './components/Billing';
 import Toast from './components/Toast';
 import SignIn from './components/SignIn';
+import SignUp from './components/SignUp';
 import CompanyProfileView from './components/CompanyProfileView';
 import AdminDashboard from './components/AdminDashboard';
 import SeekerAnalytics from './components/SeekerAnalytics';
@@ -88,10 +89,10 @@ const INITIAL_GUEST: UserProfile = {
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewType>('home'); // Home loads first
-  const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [user, setUser] = useState<UserProfile>(INITIAL_GUEST);
-  const [applications, setApplications] = useState<Application[]>(MOCK_APPLICATIONS);
-  const [aptitudeTests, setAptitudeTests] = useState<AptitudeTest[]>(MOCK_APTITUDE_TESTS);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [aptitudeTests, setAptitudeTests] = useState<AptitudeTest[]>([]);
   const [detailedJob, setDetailedJob] = useState<Job | null>(null);
   const [inspectJob, setInspectJob] = useState<Job | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
@@ -113,35 +114,48 @@ const App: React.FC = () => {
   useEffect(() => {
     // Dynamically import to ensure no load-time crashes if keys are bad
     import('./lib/supabaseClient').then(({ supabase }) => {
-      // Check active session
+      // Integrated Identity Synchronization Function
+      const syncUserProfile = (session: any) => {
+        if (!session) return;
+
+        const baseUser = {
+          ...INITIAL_GUEST,
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata.full_name || 'Supabase User',
+          role: session.user.user_metadata.role || 'seeker',
+          isEmployer: session.user.user_metadata.role === 'employer',
+          profileCompleted: true,
+          isSubscribed: false
+        } as UserProfile;
+
+        setUser(baseUser);
+
+        // Fetch deep profile properties from persistence layer
+        supabase.from('profiles').select('*').eq('id', session.user.id).single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              setUser(prev => ({
+                ...prev,
+                ...profile,
+                name: profile.full_name || prev.name,
+                role: profile.role || prev.role,
+                isEmployer: profile.role === 'employer'
+              }));
+            }
+          });
+      };
+
+      // Check active checkpoint
       supabase.auth.getSession().then(({ data: { session } }: any) => {
-        if (session) {
-          setUser({
-            ...INITIAL_GUEST,
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata.full_name || 'Supabase User',
-            role: session.user.user_metadata.role || 'seeker',
-            profileCompleted: true,
-            isSubscribed: false
-          } as UserProfile);
-        }
+        if (session) syncUserProfile(session);
       });
 
-      // Listen for changes
+      // Monitor identity state transitions
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
         if (session) {
-          setUser({
-            ...INITIAL_GUEST,
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata.full_name || 'Supabase User',
-            role: session.user.user_metadata.role || 'seeker',
-            profileCompleted: true,
-            isSubscribed: false
-          } as UserProfile);
+          syncUserProfile(session);
         } else {
-          // If signed out, go back to guest
           setUser(INITIAL_GUEST);
           setView('home');
         }
@@ -154,6 +168,50 @@ const App: React.FC = () => {
       };
     });
   }, []);
+
+  // Fetch Jobs from Supabase
+  useEffect(() => {
+    import('./lib/supabaseClient').then(({ supabase }) => {
+      supabase.from('jobs').select('*').eq('status', 'active')
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            const mappedJobs = data.map(j => ({
+              ...j,
+              salary: j.salary_range,
+              postedAt: j.created_at,
+              isPremium: j.is_premium
+            }));
+            setJobs(mappedJobs as unknown as Job[]);
+          }
+        });
+    });
+  }, []);
+
+  // Fetch Applications from Supabase
+  useEffect(() => {
+    if (!user.id) return;
+    import('./lib/supabaseClient').then(({ supabase }) => {
+      // If employer, fetch apps for their jobs. If seeker, fetch their apps.
+      const query = user.isEmployer
+        ? supabase.from('applications').select('*, profiles(*)').in('job_id', employerJobs.map(j => j.id))
+        : supabase.from('applications').select('*, profiles(*)').eq('candidate_id', user.id);
+
+      query.then(({ data, error }) => {
+        if (!error && data) {
+          setApplications(data.map(app => ({
+            ...app,
+            jobId: app.job_id,
+            appliedDate: app.created_at,
+            videoUrl: app.video_pitch_url,
+            candidateProfile: {
+              ...app.profiles,
+              name: app.profiles?.full_name || 'Candidate'
+            }
+          })) as unknown as Application[]);
+        }
+      });
+    });
+  }, [user.id, user.isEmployer, employerJobs.length]);
 
   const isAuthenticated = !!user?.email;
 
@@ -184,7 +242,7 @@ const App: React.FC = () => {
     return true;
   }, [user.email]);
 
-  const handleApplyRequest = (job: Job) => {
+  const handleApplyRequest = async (job: Job) => {
     if (!requireAuth("apply for this position", 'seeker')) return;
 
     if (job.applicationType === 'external') {
@@ -192,41 +250,53 @@ const App: React.FC = () => {
       return;
     }
 
-    if (applications.some(a => a.jobId === job.id && a.candidateProfile?.email === user.email)) {
+    if (applications.some(a => a.jobId === job.id && (a.candidate_id === user.id || a.candidateProfile?.email === user.email))) {
       setToast({ message: "Profile already deployed to this job", type: 'info' });
       return;
     }
 
     if (!job.aptitudeTestId) {
-      const newApp: Application = {
-        id: Math.random().toString(36).substr(2, 9),
-        jobId: job.id,
+      const newApp: Partial<Application> = {
+        job_id: job.id,
+        candidate_id: user.id,
         status: 'applied',
-        appliedDate: new Date().toISOString(),
-        candidateProfile: user
       };
-      setApplications(prev => [...prev, newApp]);
-      setToast({ message: "Profile Deployed Successfully", type: 'success' });
+
+      const { supabase } = await import('./lib/supabaseClient');
+      const { data, error } = await supabase.from('applications').insert(newApp).select().single();
+
+      if (!error) {
+        setApplications(prev => [...prev, { ...data, candidateProfile: user } as unknown as Application]);
+        setToast({ message: "Profile Deployed Successfully", type: 'success' });
+      } else {
+        setToast({ message: "Cloud sync failed. Application not saved.", type: 'error' });
+      }
       return;
     }
 
     setApplyingJob(job);
   };
 
-  const handleVideoComplete = (videoUrl: string) => {
-    if (!applyingJob) return;
+  const handleVideoComplete = async (videoUrl: string) => {
+    if (!applyingJob || !user.id) return;
 
-    const newApp: Application = {
-      id: Math.random().toString(36).substr(2, 9),
-      jobId: applyingJob.id,
+    const { supabase } = await import('./lib/supabaseClient');
+    const newApp = {
+      job_id: applyingJob.id,
+      candidate_id: user.id,
       status: 'applied',
-      appliedDate: new Date().toISOString(),
-      candidateProfile: user,
-      videoUrl: videoUrl
+      video_pitch_url: videoUrl
     };
 
-    setApplications(prev => [...prev, newApp]);
-    setToast({ message: "Video Pitch & Profile Deployed Successfully", type: 'success' });
+    const { data, error } = await supabase.from('applications').insert(newApp).select().single();
+
+    if (!error) {
+      setApplications(prev => [...prev, { ...data, candidateProfile: user } as unknown as Application]);
+      setToast({ message: "Video Pitch & Profile Deployed Successfully", type: 'success' });
+    } else {
+      setToast({ message: "Application persistence failure.", type: 'error' });
+    }
+
     setApplyingJob(null);
   };
 
@@ -250,14 +320,35 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePostJob = (job: Job) => {
+  const handlePostJob = async (job: Job) => {
+    // Optimistic UI update
     setJobs(prev => {
       const existing = prev.find(j => j.id === job.id);
-      if (existing) {
-        return prev.map(j => j.id === job.id ? job : j);
-      }
+      if (existing) return prev.map(j => j.id === job.id ? job : j);
       return [job, ...prev];
     });
+
+    // Persistent synchronization
+    if (user.email) {
+      const { supabase } = await import('./lib/supabaseClient');
+      const jobToPersist = {
+        ...job,
+        employer_id: user.id, // Maps to profiles.id
+        salary_range: job.salary,
+        is_premium: job.isPremium,
+        job_type: job.employmentType,
+        created_at: job.postedAt || new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('jobs').upsert(jobToPersist);
+      if (error) {
+        console.error('Job persistence failure:', error.message);
+        setToast({ message: "Cloud sync failed. Job saved locally only.", type: 'error' });
+      } else {
+        setToast({ message: "Job Manifest Synchronized with Global Feed", type: 'success' });
+      }
+    }
+
     setEditingJob(null);
   };
 
@@ -396,6 +487,9 @@ const App: React.FC = () => {
     }
 
     if (targetView === 'home' && user.email) {
+      import('./lib/supabaseClient').then(({ supabase }) => {
+        supabase.auth.signOut();
+      });
       setUser(INITIAL_GUEST);
       setToast({ message: "Session Terminated.", type: 'info' });
     }
@@ -479,13 +573,20 @@ const App: React.FC = () => {
     setToast({ message: "Alert Criterion Purged", type: 'info' });
   };
 
-  const handleUpdateApplicationStatus = useCallback((appId: string, status: ApplicationStatus) => {
-    setApplications(prev => prev.map(app => app.id === appId ? { ...app, status } : app));
-    const app = applications.find(a => a.id === appId);
-    if (app) {
+  const handleUpdateApplicationStatus = useCallback(async (appId: string, status: ApplicationStatus) => {
+    // Optimistic UI update
+    setApplications(prev => prev.map(app => (app.id === appId || app.job_id === appId) ? { ...app, status } : app));
+
+    // Persistent update
+    const { supabase } = await import('./lib/supabaseClient');
+    const { error } = await supabase.from('applications').update({ status }).match({ id: appId });
+
+    if (!error) {
       setToast({ message: `Status updated to ${status.replace('-', ' ')}. Notifications transmitted.`, type: 'success' });
+    } else {
+      setToast({ message: "Cloud synchronization failed.", type: 'error' });
     }
-  }, [applications]);
+  }, []);
 
   const employerJobs = useMemo(() =>
     jobs.filter(j => j.company === (user.companyName || user.name)),
@@ -516,6 +617,10 @@ const App: React.FC = () => {
           }}
           onSignIn={() => {
             setView('signin');
+            setShowAuthGate(false);
+          }}
+          onSignUp={() => {
+            setView('signup');
             setShowAuthGate(false);
           }}
           onBack={() => setShowAuthGate(false)}
@@ -626,7 +731,8 @@ const App: React.FC = () => {
         {view === 'profile' && !isDetailActive && <Profile user={user} setUser={setUser} onBack={() => setView('seeker')} />}
         {view === 'settings' && !isDetailActive && <Settings user={user} setUser={setUser} onUpgradeRequest={() => setShowSubscription(true)} />}
         {view === 'billing' && !isDetailActive && <Billing user={user} onUpgrade={() => setShowSubscription(true)} />}
-        {view === 'signin' && <SignIn onSignIn={handleSignIn} onBack={() => setView('home')} />}
+        {view === 'signin' && <SignIn onSignIn={handleSignIn} onBack={() => setView('home')} onSignUpClick={() => setView('signup')} />}
+        {view === 'signup' && <SignUp onSignUp={(u) => handleSignIn(u)} onBack={() => setView('home')} onSignInClick={() => setView('signin')} />}
         {view === 'employer-profile' && !isDetailActive && <EmployerProfile user={user} setUser={setUser} onViewCompany={(name) => setActiveCompanyProfile(name)} onAddSubsidiary={handleAddSubsidiary} onComplete={() => setView('employer')} onBack={() => setView('employer')} />}
 
         {showSubscription && (

@@ -39,7 +39,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
       const stream = await getCareerAdvice(newMessages, user, currentJob || undefined);
       let fullText = '';
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
-      
+
       for await (const chunk of stream) {
         const chunkText = chunk.text || "";
         fullText += chunkText;
@@ -61,7 +61,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
     <>
       {/* Subtle Dim Backdrop - No Blur */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/10 z-[200] animate-in fade-in duration-500"
           onClick={() => setIsOpen(false)}
         />
@@ -70,7 +70,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
       {/* Premium Glass Drawer - Width increased to 420px */}
       <div className={`fixed top-4 bottom-4 right-4 z-[210] w-full max-w-[420px] glass border border-white/10 rounded-[40px] shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'}`}>
         <div className="h-full flex flex-col relative overflow-hidden rounded-[40px]">
-          
+
           {/* Internal Glow Effect */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#41d599]/10 blur-[80px] pointer-events-none"></div>
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#F0C927]/10 blur-[80px] pointer-events-none"></div>
@@ -91,8 +91,8 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
                 <p className="text-[10px] text-white/40 font-bold uppercase">System v4.2 Active</p>
               </div>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)} 
+            <button
+              onClick={() => setIsOpen(false)}
               className="p-2.5 rounded-2xl bg-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all border border-white/5"
             >
               <X size={18} />
@@ -126,7 +126,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
                 <p className="text-xs text-white/50 leading-relaxed mb-10 max-w-[240px]">
                   Upgrade to Seeker Premium to unlock personalized strategic consultation.
                 </p>
-                <button 
+                <button
                   onClick={onUpgrade}
                   className="w-full py-4 rounded-[20px] bg-[#F0C927] text-[#0a4179] font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
@@ -138,11 +138,10 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] p-4 rounded-[24px] text-sm shadow-xl leading-relaxed animate-in slide-in-from-bottom-2 ${
-                    m.role === 'user' 
-                      ? 'bg-[#1c7283] text-white rounded-tr-none border border-white/10' 
+                  <div className={`max-w-[88%] p-4 rounded-[24px] text-sm shadow-xl leading-relaxed animate-in slide-in-from-bottom-2 ${m.role === 'user'
+                      ? 'bg-[#1c7283] text-white rounded-tr-none border border-white/10'
                       : 'bg-white/5 text-white/90 rounded-tl-none border border-white/5'
-                  }`}>
+                    }`}>
                     {m.text}
                   </div>
                 </div>
@@ -162,7 +161,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
           {/* Input Area */}
           <div className="p-7 border-t border-white/5 bg-white/5 backdrop-blur-md relative z-10">
             <div className="relative">
-              <input 
+              <input
                 type="text"
                 disabled={!isSubscribed}
                 value={input}
@@ -171,7 +170,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
                 placeholder={isSubscribed ? "Enter query..." : "Premium required..."}
                 className="w-full bg-white/5 border border-white/10 rounded-[22px] py-4 pl-6 pr-14 text-sm text-white focus:outline-none focus:border-[#41d599] transition-all disabled:opacity-30"
               />
-              <button 
+              <button
                 onClick={handleSend}
                 disabled={!input.trim() || !isSubscribed || isTyping}
                 className="absolute right-2 top-2 p-2.5 bg-[#41d599] rounded-2xl text-[#0a4179] hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 shadow-lg shadow-[#41d599]/20"
@@ -180,7 +179,7 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
               </button>
             </div>
             <p className="text-[8px] text-center text-white/20 font-black uppercase tracking-[0.4em] mt-5">
-              AI-JobConnect Neural Engine
+              CaliberDesk Neural Engine
             </p>
           </div>
         </div>
@@ -189,16 +188,16 @@ const CareerCoach: React.FC<CareerCoachProps> = ({ user, isSubscribed, onUpgrade
       {/* Floating Spark Trigger */}
       {!isOpen && (
         <div className="fixed bottom-10 right-10 z-[190] animate-in zoom-in-75 duration-700">
-          <button 
+          <button
             onClick={() => setIsOpen(true)}
             className="w-16 h-16 bg-gradient-to-tr from-[#41d599] to-[#2ea38e] rounded-[26px] flex items-center justify-center shadow-[0_0_30px_rgba(65,213,153,0.3)] hover:scale-110 hover:-translate-y-2 active:scale-95 transition-all relative group border border-white/10"
           >
             <div className="absolute -top-1 -right-1">
-               {!isSubscribed && (
-                 <div className="p-1.5 bg-[#F0C927] rounded-xl shadow-lg border border-[#0a4179]/20">
-                   <Lock size={10} className="text-[#0a4179]" />
-                 </div>
-               )}
+              {!isSubscribed && (
+                <div className="p-1.5 bg-[#F0C927] rounded-xl shadow-lg border border-[#0a4179]/20">
+                  <Lock size={10} className="text-[#0a4179]" />
+                </div>
+              )}
             </div>
             <MessageSquare size={26} className="text-[#0a4179]" />
             <div className="absolute right-full mr-5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none translate-x-3 group-hover:translate-x-0">

@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
       <header className="md:hidden flex items-center justify-between px-6 py-4 glass border-b border-white/10 sticky top-0 z-[60]">
         <div className="cursor-pointer" onClick={() => handleNavClick('home')}>
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#F0C927]">
-            AI JOB CONNECT
+            CALIBERDESK
           </div>
         </div>
         <button
@@ -80,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
         <div className="flex items-center justify-between mb-10 md:mb-10 px-2">
           <div className="cursor-pointer group" onClick={() => handleNavClick('home')}>
             <div className="text-[12px] font-black uppercase tracking-[0.2em] mb-1 text-[#F0C927]">
-              AI JOB CONNECT
+              CALIBERDESK
             </div>
             <div className={`text-[8px] font-black uppercase tracking-[0.2em] ${isAdmin ? 'text-[#41d599]' : (isEmployer ? 'text-[#F0C927]/60' : 'text-[#1F8E85]')}`}>
               {isAdmin ? 'Central Intelligence' : (isEmployer ? 'Enterprise Hub' : 'Talent Portal')}
@@ -230,6 +230,7 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
         <div className="sticky top-0 z-40 p-4 md:px-10 md:py-6 bg-[#0a4179]/90 backdrop-blur-md flex items-center justify-between border-b border-white/5 mb-4">
           {/* Top Bar for Authenticated Users */}
           <div className="flex items-center gap-4">
+            <span className="text-sm font-black uppercase tracking-widest text-white">CaliberDesk</span>
             <h1 className="text-xl font-black uppercase tracking-tight text-white">{
               view === 'seeker' ? 'Discover Jobs' :
                 view === 'employer' ? 'Hiring HQ' :

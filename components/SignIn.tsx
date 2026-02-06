@@ -7,9 +7,10 @@ import { UserProfile, OperationalRole } from '../types';
 interface SignInProps {
   onSignIn: (user: UserProfile) => void;
   onBack: () => void;
+  onSignUpClick: () => void;
 }
 
-const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
+const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack, onSignUpClick }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -76,22 +77,21 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'linkedin') => {
+  const handleSocialLogin = async (provider: 'google' | 'linkedin_oidc') => {
     setIsLoading(true);
     setError(null);
     try {
+      // Use linkedin_oidc as per latest Supabase/LinkedIn requirements
       const { error } = await supabase.auth.signInWithOAuth({
         provider: provider,
+        options: {
+          redirectTo: window.location.origin,
+        }
       });
       if (error) throw error;
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || `Failed to initialize ${provider} sequence`);
       setIsLoading(false);
-      // Fallback for demo
-      setTimeout(() => {
-        onSignIn(MOCK_USER);
-        setIsLoading(false);
-      }, 1000);
     }
   };
 
@@ -174,7 +174,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white">Google</span>
               </button>
               <button
-                onClick={() => handleSocialLogin('linkedin')}
+                onClick={() => handleSocialLogin('linkedin_oidc')}
                 disabled={isLoading}
                 className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-2xl transition-all active:scale-95 group disabled:opacity-50 shadow-lg"
               >
@@ -242,6 +242,15 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn, onBack }) => {
                 {isLoading ? "Authenticating..." : "Sign In"}
               </button>
             </form>
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={onSignUpClick}
+                className="text-[10px] font-black uppercase tracking-widest text-[#41d599] hover:underline underline-offset-4"
+              >
+                New here? Initialize a New Identity
+              </button>
+            </div>
 
             <div className="mt-8 pt-8 border-t border-white/5">
               <button

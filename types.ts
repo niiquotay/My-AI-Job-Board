@@ -43,17 +43,17 @@ export interface InterviewFeedback {
   improvements: string[];
 }
 
-export type ApplicationStatus = 
-  | 'applied' 
-  | 'shortlisted' 
-  | 'rejected' 
-  | 'assessment' 
-  | 'interview-invitation' 
+export type ApplicationStatus =
+  | 'applied'
+  | 'shortlisted'
+  | 'rejected'
+  | 'assessment'
+  | 'interview-invitation'
   | 'selected'
-  | 'final-interview' 
-  | 'offer-letter' 
-  | 'salary-negotiating' 
-  | 'approval' 
+  | 'final-interview'
+  | 'offer-letter'
+  | 'salary-negotiating'
+  | 'approval'
   | 'hired';
 
 export interface Application {
@@ -90,9 +90,9 @@ export interface Job {
   logoUrl?: string;
   location: string; // Used for Onsite/Remote/Hybrid
   city: string;
-  country: string; 
+  country: string;
   category?: string;
-  allowedCountries: string[]; 
+  allowedCountries: string[];
   salary: string;
   salaryStructure?: 'Fixed' | 'Commission Only' | 'Commission + Salary';
   roleDefinition?: string;
@@ -101,7 +101,7 @@ export interface Job {
   requirements?: string;
   tags: string[];
   benefits?: string[];
-  postedAt: string; 
+  postedAt: string;
   isPremium?: boolean;
   isQuickHire?: boolean;
   isShortlistService?: boolean;
@@ -143,15 +143,15 @@ export interface Transaction {
   paymentMethod: string;
 }
 
-export type OperationalRole = 
-  | 'sales_exec' 
-  | 'sales_manager' 
-  | 'cs_operator' 
-  | 'cs_head' 
-  | 'recruiter' 
-  | 'recruiter_head' 
-  | 'finance_manager' 
-  | 'finance_head' 
+export type OperationalRole =
+  | 'sales_exec'
+  | 'sales_manager'
+  | 'cs_operator'
+  | 'cs_head'
+  | 'recruiter'
+  | 'recruiter_head'
+  | 'finance_manager'
+  | 'finance_head'
   | 'super_admin';
 
 export interface SubUser {
@@ -190,8 +190,8 @@ export interface UserProfile {
   password?: string;
   phone?: string;
   whatsapp?: string;
-  linkedinUrl?: string; 
-  portfolioUrl?: string; 
+  linkedinUrl?: string;
+  portfolioUrl?: string;
   role: string;
   city: string;
   country: string;
@@ -205,7 +205,7 @@ export interface UserProfile {
   stealthMode: boolean;
   profileCompleted: boolean;
   linkedInConnected: boolean;
-  isSubscribed: boolean; 
+  isSubscribed: boolean;
   subscriptionTier: 'free' | 'premium';
   productCredits?: {
     standard: number;
@@ -218,7 +218,7 @@ export interface UserProfile {
   savedJobIds: string[];
   autoApplyEnabled: boolean;
   enhancedAvatar?: string;
-  profileImages: string[]; 
+  profileImages: string[];
   workHistory: WorkExperience[];
   education: Education[];
   isEmployer?: boolean;
@@ -228,7 +228,7 @@ export interface UserProfile {
   subUsers?: SubUser[];
   subsidiaries?: Subsidiary[];
   leadership?: LeadershipMember[];
-  opRole?: OperationalRole; 
+  opRole?: OperationalRole;
   companyName?: string;
   companyBio?: string;
   cvName?: string;
@@ -263,24 +263,25 @@ export interface UserProfile {
   joinedDate?: string;
 }
 
-export type ViewType = 
-  | 'seeker' 
-  | 'seeker-insights' 
-  | 'seeker-applications' 
-  | 'employer' 
-  | 'employer-management' 
-  | 'employer-profile' 
-  | 'home' 
-  | 'profile' 
-  | 'job-details' 
-  | 'billing' 
-  | 'interview-prep' 
-  | 'cv-prep' 
-  | 'settings' 
-  | 'signin' 
-  | 'employer-public-profile' 
-  | 'admin' 
-  | 'comm-assistant' 
+export type ViewType =
+  | 'seeker'
+  | 'seeker-insights'
+  | 'seeker-applications'
+  | 'employer'
+  | 'employer-management'
+  | 'employer-profile'
+  | 'home'
+  | 'profile'
+  | 'job-details'
+  | 'billing'
+  | 'interview-prep'
+  | 'cv-prep'
+  | 'settings'
+  | 'signin'
+  | 'signup'
+  | 'employer-public-profile'
+  | 'admin'
+  | 'comm-assistant'
   | 'employer-comm-assistant'
   | 'employer-aptitude'
   | 'employer-org'

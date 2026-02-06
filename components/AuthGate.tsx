@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  UserPlus, Building2, ArrowRight, Zap, ShieldCheck, 
+import {
+  UserPlus, Building2, ArrowRight, Zap, ShieldCheck,
   Sparkles, LogIn, ChevronRight, Briefcase, Users,
   Globe, Cpu, Rocket, Shield, Mail, Lock, Loader2, ArrowLeft,
   User, Check, Info, X
 } from 'lucide-react';
 import Tooltip from './Tooltip';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthGateProps {
   initialRole?: 'seeker' | 'employer';
   onSelectSeeker: (email: string) => void;
   onSelectEmployer: (email: string) => void;
   onSignIn: () => void;
+  onSignUp: () => void;
   onBack: () => void;
 }
 
-const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSeeker, onSelectEmployer, onSignIn, onBack }) => {
+const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSeeker, onSelectEmployer, onSignIn, onSignUp, onBack }) => {
   const [role, setRole] = useState<'seeker' | 'employer'>(initialRole);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,27 +30,28 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      if (role === 'seeker') {
-        onSelectSeeker(email);
-      } else {
-        onSelectEmployer(email);
-      }
-      setIsLoading(false);
-    }, 1500);
+    onSignUp();
   };
 
-  const handleSocialSignUp = (provider: string) => {
+  const handleSocialSignUp = async (provider: 'google' | 'linkedin_oidc') => {
     setIsLoading(true);
-    setTimeout(() => {
-      if (role === 'seeker') {
-        onSelectSeeker(`${provider.toLowerCase()}@example.com`);
-      } else {
-        onSelectEmployer(`${provider.toLowerCase()}@company.ai`);
-      }
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          data: {
+            role: role,
+            is_employer: role === 'employer',
+            profileCompleted: false
+          },
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      console.error('Social Auth Error:', err.message);
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -62,19 +65,19 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
       <div className="glass w-full max-w-md rounded-[32px] md:rounded-[40px] p-6 md:p-8 border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.5)] relative z-10 animate-in fade-in zoom-in-95 duration-500">
         {/* Top Navigation & Close Action - Tightened */}
         <div className="flex items-center justify-between mb-4 md:mb-5">
-          <button 
+          <button
             onClick={onBack}
             className="flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Back</span>
           </button>
-          
+
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/10 text-[7px] font-black uppercase tracking-widest text-[#F0C927]">
               <Sparkles size={8} className="animate-pulse" /> Identity Sync
             </div>
-            <button 
+            <button
               onClick={onBack}
               className="p-1.5 rounded-xl bg-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all border border-white/5 shadow-md active:scale-95"
             >
@@ -91,24 +94,21 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
 
         {/* Role Segmented Control - Tightened */}
         <div className="p-1 bg-[#06213f]/60 rounded-xl border border-white/5 flex mb-4 md:mb-5 shadow-inner relative overflow-hidden">
-          <div 
-            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
-              role === 'seeker' ? 'left-1 bg-[#F0C927]' : 'left-[calc(50%+4px)] bg-[#41d599]'
-            }`}
+          <div
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${role === 'seeker' ? 'left-1 bg-[#F0C927]' : 'left-[calc(50%+4px)] bg-[#41d599]'
+              }`}
           />
-          <button 
+          <button
             onClick={() => setRole('seeker')}
-            className={`flex-1 relative z-10 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
-              role === 'seeker' ? 'text-[#0a4179]' : 'text-white/30'
-            }`}
+            className={`flex-1 relative z-10 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${role === 'seeker' ? 'text-[#0a4179]' : 'text-white/30'
+              }`}
           >
             Job Seeker
           </button>
-          <button 
+          <button
             onClick={() => setRole('employer')}
-            className={`flex-1 relative z-10 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${
-              role === 'employer' ? 'text-[#0a4179]' : 'text-white/30'
-            }`}
+            className={`flex-1 relative z-10 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${role === 'employer' ? 'text-[#0a4179]' : 'text-white/30'
+              }`}
           >
             Organization
           </button>
@@ -116,8 +116,8 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
 
         {/* Social Tracks - reduced vertical footprint */}
         <div className="grid grid-cols-2 gap-3 mb-4 md:mb-5">
-          <button 
-            onClick={() => handleSocialSignUp('Google')}
+          <button
+            onClick={() => handleSocialSignUp('google')}
             disabled={isLoading}
             className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-2.5 rounded-xl transition-all active:scale-95 group disabled:opacity-50"
           >
@@ -129,8 +129,8 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
             </svg>
             <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-white">Google</span>
           </button>
-          <button 
-            onClick={() => handleSocialSignUp('LinkedIn')}
+          <button
+            onClick={() => handleSocialSignUp('linkedin_oidc')}
             disabled={isLoading}
             className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 py-2.5 rounded-xl transition-all active:scale-95 group disabled:opacity-50"
           >
@@ -155,14 +155,13 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
               <Mail size={10} className="text-[#F0C927]/40" /> Official Email
             </label>
             <div className="relative">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs outline-none transition-all placeholder:text-white/10 ${
-                  role === 'seeker' ? 'focus:border-[#F0C927]/50' : 'focus:border-[#41d599]/50'
-                }`}
+                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs outline-none transition-all placeholder:text-white/10 ${role === 'seeker' ? 'focus:border-[#F0C927]/50' : 'focus:border-[#41d599]/50'
+                  }`}
                 placeholder="name@organization.com"
               />
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/10" size={16} />
@@ -174,28 +173,26 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
               <Lock size={10} className="text-[#F0C927]/40" /> Security Hash
             </label>
             <div className="relative">
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs outline-none transition-all placeholder:text-white/10 ${
-                  role === 'seeker' ? 'focus:border-[#F0C927]/50' : 'focus:border-[#41d599]/50'
-                }`}
+                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs outline-none transition-all placeholder:text-white/10 ${role === 'seeker' ? 'focus:border-[#F0C927]/50' : 'focus:border-[#41d599]/50'
+                  }`}
                 placeholder="••••••••"
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/10" size={16} />
             </div>
           </div>
 
-          <button 
+          <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 ${
-              role === 'seeker' 
-                ? 'bg-[#F0C927] text-[#0a4179] shadow-[#F0C927]/20' 
-                : 'bg-[#41d599] text-[#0a4179] shadow-[#41d599]/20'
-            }`}
+            className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 ${role === 'seeker'
+              ? 'bg-[#F0C927] text-[#0a4179] shadow-[#F0C927]/20'
+              : 'bg-[#41d599] text-[#0a4179] shadow-[#41d599]/20'
+              }`}
           >
             {isLoading ? <Loader2 className="animate-spin" size={16} /> : <UserPlus size={16} />}
             {isLoading ? 'Processing...' : 'Initialize Session'}
@@ -204,15 +201,24 @@ const AuthGate: React.FC<AuthGateProps> = ({ initialRole = 'seeker', onSelectSee
 
         {/* Footer Shortcut - Minimized */}
         <div className="mt-5 md:mt-6 pt-4 border-t border-white/5 text-center">
-          <button 
+          <button
             onClick={onSignIn}
             className="text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-[#F0C927] transition-colors"
           >
             Authorized? <span className="text-[#F0C927] underline underline-offset-4 font-black">Sign In Here</span>
           </button>
         </div>
+
+        <div className="mt-2 text-center">
+          <button
+            onClick={onSignUp}
+            className="text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-[#41d599] transition-colors"
+          >
+            No identity? <span className="text-[#41d599] underline underline-offset-4 font-black">Register New Identity</span>
+          </button>
+        </div>
       </div>
-      
+
       {/* Global Status HUD */}
       <div className="flex justify-center gap-8 md:gap-12 opacity-10 pointer-events-none mt-10 pb-4">
         <div className="flex items-center gap-2">

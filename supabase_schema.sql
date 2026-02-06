@@ -107,3 +107,80 @@ create policy "Employers can view applications for their jobs." on public.applic
 
 create policy "Candidates can insert applications." on public.applications
   for insert with check (auth.uid() = candidate_id);
+
+-- Add delete policy for Jobs
+create policy "Employers can delete own jobs." on public.jobs
+  for delete using (auth.uid() = employer_id);
+
+-- Add update policy for Applications (Employers changing status)
+create policy "Employers can update application status." on public.applications
+  for update using (
+    exists (
+      select 1 from public.jobs
+      where public.jobs.id = public.applications.job_id
+      and public.jobs.employer_id = auth.uid()
+    )
+  );
+
+-- STORAGE SECURITY
+-- Note: These policies apply to the storage.objects table.
+-- You must create the 'cvs' and 'videos' buckets first in the Supabase Dashboard.
+
+-- Policy for CVS bucket
+create policy "Users can upload their own CV."
+on storage.objects for insert
+with check (
+  bucket_id = 'cvs' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create policy "Users can view their own CV."
+on storage.objects for select
+using (
+  bucket_id = 'cvs' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create policy "Employers can view candidate CVs."
+on storage.objects for select
+using (
+  bucket_id = 'cvs' AND
+  exists (
+    select 1 from public.applications
+    join public.jobs on public.jobs.id = public.applications.job_id
+    where public.applications.resume_url like '%' || name || '%'
+    and public.jobs.employer_id = auth.uid()
+  )
+);
+
+-- Policy for Videos bucket (Pitch videos are meant to be widely viewable by recruiters)
+create policy "Users can upload pitch videos."
+on storage.objects for insert
+with check (
+  bucket_id = 'videos' AND
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create policy "Public/Recruiter video access."
+on storage.objects for select
+using ( bucket_id = 'videos' );
+
+-- TRIGGER TO CREATE PROFILE ON SIGNUP
+-- This ensures every auth user has a matching public profile row
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name, role)
+  values (
+    new.id, 
+    new.email, 
+    new.raw_user_meta_data->>'full_name', 
+    coalesce(new.raw_user_meta_data->>'role', 'seeker')
+  );
+  return new;
+end;
+$$ language plpgsql security modeller;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
