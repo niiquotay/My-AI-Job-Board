@@ -47,13 +47,21 @@ const Home: React.FC<HomeProps> = ({
           </div>
           <span className="text-sm font-black uppercase tracking-widest text-white">CaliberDesk</span>
         </div>
-        <button
-          onClick={onSignInClick}
-          className="bg-white/10 hover:bg-white/20 border border-white/10 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 group"
-        >
-          <LogIn size={14} className="group-hover:text-[#F0C927] transition-colors" />
-          Sign In
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => onNavigateToModule('career-insights')}
+            className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-[#F0C927] transition-colors"
+          >
+            Insights & Data
+          </button>
+          <button
+            onClick={onSignInClick}
+            className="bg-white/10 hover:bg-white/20 border border-white/10 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 group"
+          >
+            <LogIn size={14} className="group-hover:text-[#F0C927] transition-colors" />
+            Sign In
+          </button>
+        </div>
       </div>
 
       <div className="max-w-5xl w-full space-y-8 relative z-10 py-8 md:py-12">
@@ -271,6 +279,12 @@ const Home: React.FC<HomeProps> = ({
                   <Check size={8} /> Active Module
                 </div>
               </div>
+            </Tooltip>
+
+            <Tooltip text="Real-time career telemetry and global mobility index." position="right" className="w-full">
+              <button onClick={() => onNavigateToModule('career-insights')} className={`w-full flex flex-col items-center gap-1 px-4 py-3 rounded-2xl transition-all bg-[#F0C927]/5 border border-[#F0C927]/30 text-white/40 hover:bg-[#F0C927]/10 hover:text-white`}>
+                <BarChart3 size={18} className="text-[#F0C927]" /> <span className="text-xs font-black uppercase">Insights</span>
+              </button>
             </Tooltip>
 
             <div

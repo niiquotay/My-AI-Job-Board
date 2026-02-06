@@ -288,4 +288,5 @@ export type ViewType =
   | 'services'
   | 'hrm-landing'
   | 'payroll-landing'
-  | 'vendor-landing';
+  | 'vendor-landing'
+  | 'career-insights';

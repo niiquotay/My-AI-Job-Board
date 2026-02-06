@@ -32,7 +32,8 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
     'signin',
     'hrm-landing',
     'payroll-landing',
-    'vendor-landing'
+    'vendor-landing',
+    'career-insights'
   ].includes(view);
 
   if (isPublicView) {
@@ -159,8 +160,8 @@ const Layout: React.FC<LayoutProps> = ({ children, view, setView, user }) => {
                 </button>
               </Tooltip>
               <Tooltip text="Real-time career telemetry and global mobility index." position="right" className="w-full">
-                <button onClick={() => handleNavClick('seeker-insights')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${view === 'seeker-insights' ? 'bg-[#F0C927] text-[#0a4179] shadow-lg' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}>
-                  <BarChart size={18} /> <span className="text-sm font-bold">Market Insights</span>
+                <button onClick={() => handleNavClick('career-insights')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${view === 'career-insights' ? 'bg-[#F0C927] text-[#0a4179] shadow-lg' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}>
+                  <BarChart3 size={18} /> <span className="text-sm font-bold">Career Insights</span>
                 </button>
               </Tooltip>
               <Tooltip text="Draft perfect professional messages, emails, and LinkedIn posts using Gemini 3 Pro." position="right" className="w-full">

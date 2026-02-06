@@ -31,6 +31,7 @@ import AptitudeTestPlayer from './components/AptitudeTestPlayer';
 import OrganizationManagement from './components/OrganizationManagement';
 import ProductsAndServices from './components/ProductsAndServices';
 import ComingSoonLanding from './components/ComingSoonLanding';
+import CareerInsights from './components/CareerInsights';
 import AuthGate from './components/AuthGate';
 import Tooltip from './components/Tooltip';
 import Background3D from './components/Background3D';
@@ -470,7 +471,7 @@ const App: React.FC = () => {
     setShowAuthGate(false);
 
     // PUBLIC ROUTES
-    const publicViews = ['home', 'seeker', 'signin', 'hrm-landing', 'payroll-landing', 'vendor-landing'];
+    const publicViews = ['home', 'seeker', 'signin', 'hrm-landing', 'payroll-landing', 'vendor-landing', 'career-insights'];
 
     if (targetView === 'employer-post-job') {
       if (!requireAuth("post job vacancies", 'employer')) return;
@@ -728,6 +729,7 @@ const App: React.FC = () => {
         {view === 'vendor-landing' && <ComingSoonLanding module="vendor" onBack={() => setView('home')} />}
 
         {view === 'admin' && !isDetailActive && <AdminDashboard user={user} jobs={jobs} applications={applications} transactions={GLOBAL_TRANSACTIONS} onBack={() => setView('home')} pendingVerifications={[]} onVerifyEmployer={() => { }} onApproveJob={() => { }} onUpdateApplicationStatus={handleUpdateApplicationStatus} />}
+        {view === 'career-insights' && <CareerInsights onBack={() => setView('home')} user={user} />}
         {view === 'profile' && !isDetailActive && <Profile user={user} setUser={setUser} onBack={() => setView('seeker')} />}
         {view === 'settings' && !isDetailActive && <Settings user={user} setUser={setUser} onUpgradeRequest={() => setShowSubscription(true)} />}
         {view === 'billing' && !isDetailActive && <Billing user={user} onUpgrade={() => setShowSubscription(true)} />}
